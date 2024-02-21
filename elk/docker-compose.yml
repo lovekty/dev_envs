@@ -1,4 +1,4 @@
-version: "2.3"
+version: "2.4"
 
 services:
   setup:
@@ -243,4 +243,7 @@ volumes:
 networks:
   nw-elk:
     name: nw-elk
+    external: true
+  nw-all:
+    name: nw-all
     external: true
