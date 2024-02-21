@@ -9,13 +9,14 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-      - padata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     networks:
       - nw-all
 
 volumes:
   pgdata:
     name: vol-pg16
+    driver: local
 
 networks:
   nw-all:
