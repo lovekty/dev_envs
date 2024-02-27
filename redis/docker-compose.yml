@@ -6,18 +6,14 @@ services:
     container_name: redis
     restart: always
     ports:
-      - 6379:6379
+      - ${REDIS_PORT}:6379
     volumes:
       - data:/data
-    networks:
-      - nw-all
 
 volumes:
   data:
     name: vol-redis
-    driver: local
 
 networks:
-  nw-all:
-    name: nw-all
-    external: true
+  default:
+    name: nw-redis

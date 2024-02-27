@@ -1,0 +1,44 @@
+version: "1.0"
+
+services:
+  
+  nimbus:
+    image: storm:2.6
+    container_name: storm-nimbus
+    hostname: nimbus
+    command: storm nimbus
+    external_links:
+      - zk-1:zookeeper
+    restart: always
+    ports:
+      - ${NIMBUS_PORT}:6627
+
+  supervisor:
+    image: storm:2.6
+    container_name: storm-supervisor
+    hostname: supervisor
+    command: storm supervisor
+    depends_on:
+      - nimbus
+    links:
+      - nimbus
+    external_links:
+      - zk-1:zookeeper
+    restart: always
+  
+  ui:
+    image: storm:2.6
+    container_name: storm-ui
+    command: storm ui
+    depends_on:
+      - nimbus
+    links:
+      - nimbus
+    ports:
+      - ${UI_PORT}:8080
+    restart: always
+
+networks:
+  default:
+    name: nw-zk
+    external: true
