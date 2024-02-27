@@ -3,6 +3,7 @@ version: "2.4"
 services:
   setup:
     image: elasticsearch:${STACK_VERSION}
+    container_name: elk-setup
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
     networks:
@@ -26,21 +27,21 @@ services:
           echo "Creating certs";
           echo -ne \
           "instances:\n"\
-          "  - name: c-es8-1\n"\
+          "  - name: es-1\n"\
           "    dns:\n"\
-          "      - c-es8-1\n"\
+          "      - es-1\n"\
           "      - localhost\n"\
           "    ip:\n"\
           "      - 127.0.0.1\n"\
-          "  - name: c-es8-2\n"\
+          "  - name: es-2\n"\
           "    dns:\n"\
-          "      - c-es8-2\n"\
+          "      - es-2\n"\
           "      - localhost\n"\
           "    ip:\n"\
           "      - 127.0.0.1\n"\
-          "  - name: c-es8-3\n"\
+          "  - name: es-3\n"\
           "    dns:\n"\
-          "      - c-es8-3\n"\
+          "      - es-3\n"\
           "      - localhost\n"\
           "    ip:\n"\
           "      - 127.0.0.1\n"\
@@ -53,18 +54,20 @@ services:
         find . -type d -exec chmod 750 \{\} \;;
         find . -type f -exec chmod 640 \{\} \;;
         echo "Waiting for Elasticsearch availability";
-        until curl -s --cacert config/certs/ca/ca.crt https://c-es8-1:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
+        until curl -s --cacert config/certs/ca/ca.crt https://es-1:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
         echo "Setting kibana_system password";
-        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://c-es8-1:9200/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es-1:9200/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
         echo "All done!";
       '
     healthcheck:
-      test: ["CMD-SHELL", "[ -f config/certs/c-es8-1/c-es8-1.crt ]"]
+      test: ["CMD-SHELL", "[ -f config/certs/es-1/es-1.crt ]"]
       interval: 1s
       timeout: 5s
       retries: 120
 
-  c-es8-1:
+  es-1:
+    container_name: es-1
+    restart: always
     depends_on:
       setup:
         condition: service_healthy
@@ -76,21 +79,22 @@ services:
       - ${ES_PORT}:9200
     networks:
       - nw-elk
+      - nw-all
     environment:
-      - node.name=c-es8-1
+      - node.name=es-1
       - cluster.name=${CLUSTER_NAME}
-      - cluster.initial_master_nodes=c-es8-1,c-es8-2,c-es8-3
-      - discovery.seed_hosts=c-es8-2,c-es8-3
+      - cluster.initial_master_nodes=es-1,es-2,es-3
+      - discovery.seed_hosts=es-2,es-3
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - bootstrap.memory_lock=true
       - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=true
-      - xpack.security.http.ssl.key=certs/c-es8-1/c-es8-1.key
-      - xpack.security.http.ssl.certificate=certs/c-es8-1/c-es8-1.crt
+      - xpack.security.http.ssl.key=certs/es-1/es-1.key
+      - xpack.security.http.ssl.certificate=certs/es-1/es-1.crt
       - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.enabled=true
-      - xpack.security.transport.ssl.key=certs/c-es8-1/c-es8-1.key
-      - xpack.security.transport.ssl.certificate=certs/c-es8-1/c-es8-1.crt
+      - xpack.security.transport.ssl.key=certs/es-1/es-1.key
+      - xpack.security.transport.ssl.certificate=certs/es-1/es-1.crt
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${LICENSE}
@@ -109,29 +113,32 @@ services:
       timeout: 10s
       retries: 120
 
-  c-es8-2:
+  es-2:
+    container_name: es-2
+    restart: always
     depends_on:
-      - c-es8-1
+      - es-1
     image: elasticsearch:${STACK_VERSION}
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
       - esdata2:/usr/share/elasticsearch/data
     networks:
       - nw-elk
+      - nw-all
     environment:
-      - node.name=c-es8-2
+      - node.name=es-2
       - cluster.name=${CLUSTER_NAME}
-      - cluster.initial_master_nodes=c-es8-1,c-es8-2,c-es8-3
-      - discovery.seed_hosts=c-es8-1,c-es8-3
+      - cluster.initial_master_nodes=es-1,es-2,es-3
+      - discovery.seed_hosts=es-1,es-3
       - bootstrap.memory_lock=true
       - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=true
-      - xpack.security.http.ssl.key=certs/c-es8-2/c-es8-2.key
-      - xpack.security.http.ssl.certificate=certs/c-es8-2/c-es8-2.crt
+      - xpack.security.http.ssl.key=certs/es-2/es-2.key
+      - xpack.security.http.ssl.certificate=certs/es-2/es-2.crt
       - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.enabled=true
-      - xpack.security.transport.ssl.key=certs/c-es8-2/c-es8-2.key
-      - xpack.security.transport.ssl.certificate=certs/c-es8-2/c-es8-2.crt
+      - xpack.security.transport.ssl.key=certs/es-2/es-2.key
+      - xpack.security.transport.ssl.certificate=certs/es-2/es-2.crt
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${LICENSE}
@@ -150,29 +157,32 @@ services:
       timeout: 10s
       retries: 120
 
-  c-es8-3:
+  es-3:
+    container_name: es-3
+    restart: always
     depends_on:
-      - c-es8-2
+      - es-2
     image: elasticsearch:${STACK_VERSION}
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
       - esdata3:/usr/share/elasticsearch/data
     networks:
       - nw-elk
+      - nw-all
     environment:
-      - node.name=c-es8-3
+      - node.name=es-3
       - cluster.name=${CLUSTER_NAME}
-      - cluster.initial_master_nodes=c-es8-1,c-es8-2,c-es8-3
-      - discovery.seed_hosts=c-es8-1,c-es8-2
+      - cluster.initial_master_nodes=es-1,es-2,es-3
+      - discovery.seed_hosts=es-1,es-2
       - bootstrap.memory_lock=true
       - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=true
-      - xpack.security.http.ssl.key=certs/c-es8-3/c-es8-3.key
-      - xpack.security.http.ssl.certificate=certs/c-es8-3/c-es8-3.crt
+      - xpack.security.http.ssl.key=certs/es-3/es-3.key
+      - xpack.security.http.ssl.certificate=certs/es-3/es-3.crt
       - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.enabled=true
-      - xpack.security.transport.ssl.key=certs/c-es8-3/c-es8-3.key
-      - xpack.security.transport.ssl.certificate=certs/c-es8-3/c-es8-3.crt
+      - xpack.security.transport.ssl.key=certs/es-3/es-3.key
+      - xpack.security.transport.ssl.certificate=certs/es-3/es-3.crt
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${LICENSE}
@@ -191,13 +201,15 @@ services:
       timeout: 10s
       retries: 120
 
-  c-kib8:
+  kibana:
+    container_name: kibana
+    restart: always
     depends_on:
-      c-es8-1:
+      es-1:
         condition: service_healthy
-      c-es8-2:
+      es-2:
         condition: service_healthy
-      c-es8-3:
+      es-3:
         condition: service_healthy
     image: kibana:${STACK_VERSION}
     volumes:
@@ -207,9 +219,10 @@ services:
       - ${KIBANA_PORT}:5601
     networks:
       - nw-elk
+      - nw-all
     environment:
       - SERVERNAME=kibana
-      - ELASTICSEARCH_HOSTS=https://c-es8-1:9200
+      - ELASTICSEARCH_HOSTS=https://es-1:9200
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
       - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
@@ -229,16 +242,16 @@ volumes:
     name: vol-elk-certs
     driver: local
   esdata1:
-    name: vol-es8-data-1
+    name: vol-es-1
     driver: local
   esdata2:
-    name: vol-es8-data-2
+    name: vol-es-2
     driver: local
   esdata3:
-    name: vol-es8-data-3
+    name: vol-es-3
     driver: local
   kibana:
-    name: vol-kib8-data
+    name: vol-kibana
     driver: local
 networks:
   nw-elk:
