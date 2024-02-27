@@ -1,0 +1,56 @@
+version: "1.0"
+
+services:
+  jm:
+    container_name: flink-jm
+    image: flink:1.18
+    restart: always
+    ports:
+      - "8081:8081"
+    networks:
+      - nw-flink
+      - nw-all
+    command: jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flink-jm
+
+  flink118-tm:
+    image: flink:1.18
+    restart: always
+    depends_on:
+      - jm
+    networks:
+      - nw-flink
+      - nw-all
+    command: taskmanager
+    scale: 4
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flink-jm
+        taskmanager.numberOfTaskSlots: 2
+
+  sc:
+    container_name: flink-sc
+    image: flink:1.18
+    networks:
+      - nw-flink
+      - nw-all
+    command: bin/sql-client.sh
+    depends_on:
+      - jm
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flink-jm
+        rest.address: flink-jm
+
+networks:
+  nw-all:
+    name: nw-all
+    external: true
+  nw-flink:
+    name: nw-flink
+    external: true
