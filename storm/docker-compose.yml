@@ -9,6 +9,8 @@ services:
     command: storm nimbus
     external_links:
       - zk-1:zookeeper
+      - zk-2:zookeeper
+      - zk-3:zookeeper
     restart: always
     ports:
       - ${NIMBUS_PORT}:6627
@@ -24,6 +26,8 @@ services:
       - nimbus
     external_links:
       - zk-1:zookeeper
+      - zk-2:zookeeper
+      - zk-3:zookeeper
     restart: always
   
   ui:
