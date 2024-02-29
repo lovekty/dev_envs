@@ -25,21 +25,9 @@ services:
           echo "Creating certs";
           echo -ne \
           "instances:\n"\
-          "  - name: es-1\n"\
+          "  - name: es\n"\
           "    dns:\n"\
-          "      - es-1\n"\
-          "      - localhost\n"\
-          "    ip:\n"\
-          "      - 127.0.0.1\n"\
-          "  - name: es-2\n"\
-          "    dns:\n"\
-          "      - es-2\n"\
-          "      - localhost\n"\
-          "    ip:\n"\
-          "      - 127.0.0.1\n"\
-          "  - name: es-3\n"\
-          "    dns:\n"\
-          "      - es-3\n"\
+          "      - elasticsearch\n"\
           "      - localhost\n"\
           "    ip:\n"\
           "      - 127.0.0.1\n"\
@@ -52,19 +40,20 @@ services:
         find . -type d -exec chmod 750 \{\} \;;
         find . -type f -exec chmod 640 \{\} \;;
         echo "Waiting for Elasticsearch availability";
-        until curl -s --cacert config/certs/ca/ca.crt https://es-1:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
+        until curl -s --cacert config/certs/ca/ca.crt https://elasticsearch:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
         echo "Setting kibana_system password";
-        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es-1:9200/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://elasticsearch:9200/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
         echo "All done!";
       '
     healthcheck:
-      test: ["CMD-SHELL", "[ -f config/certs/es-1/es-1.crt ]"]
+      test: ["CMD-SHELL", "[ -f config/certs/es/es.crt ]"]
       interval: 1s
       timeout: 5s
       retries: 120
 
-  es-1:
-    container_name: es-1
+  elasticsearch:
+    container_name: elasticsearch
+    hostname: elasticsearch
     restart: always
     depends_on:
       setup:
@@ -72,106 +61,21 @@ services:
     image: elasticsearch:${STACK_VERSION}
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
-      - esdata1:/usr/share/elasticsearch/data
+      - esdata:/usr/share/elasticsearch/data
     ports:
       - ${ES_PORT}:9200
     environment:
-      - node.name=es-1
-      - cluster.name=${CLUSTER_NAME}
-      - cluster.initial_master_nodes=es-1,es-2,es-3
-      - discovery.seed_hosts=es-2,es-3
+      - discovery.type=single-node
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - bootstrap.memory_lock=true
       - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=true
-      - xpack.security.http.ssl.key=certs/es-1/es-1.key
-      - xpack.security.http.ssl.certificate=certs/es-1/es-1.crt
+      - xpack.security.http.ssl.key=certs/es/es.key
+      - xpack.security.http.ssl.certificate=certs/es/es.crt
       - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.enabled=true
-      - xpack.security.transport.ssl.key=certs/es-1/es-1.key
-      - xpack.security.transport.ssl.certificate=certs/es-1/es-1.crt
-      - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
-      - xpack.security.transport.ssl.verification_mode=certificate
-      - xpack.license.self_generated.type=${LICENSE}
-    mem_limit: ${MEM_LIMIT}
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
-        ]
-      interval: 10s
-      timeout: 10s
-      retries: 120
-
-  es-2:
-    container_name: es-2
-    restart: always
-    depends_on:
-      - es-1
-    image: elasticsearch:${STACK_VERSION}
-    volumes:
-      - certs:/usr/share/elasticsearch/config/certs
-      - esdata2:/usr/share/elasticsearch/data
-    environment:
-      - node.name=es-2
-      - cluster.name=${CLUSTER_NAME}
-      - cluster.initial_master_nodes=es-1,es-2,es-3
-      - discovery.seed_hosts=es-1,es-3
-      - bootstrap.memory_lock=true
-      - xpack.security.enabled=true
-      - xpack.security.http.ssl.enabled=true
-      - xpack.security.http.ssl.key=certs/es-2/es-2.key
-      - xpack.security.http.ssl.certificate=certs/es-2/es-2.crt
-      - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
-      - xpack.security.transport.ssl.enabled=true
-      - xpack.security.transport.ssl.key=certs/es-2/es-2.key
-      - xpack.security.transport.ssl.certificate=certs/es-2/es-2.crt
-      - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
-      - xpack.security.transport.ssl.verification_mode=certificate
-      - xpack.license.self_generated.type=${LICENSE}
-    mem_limit: ${MEM_LIMIT}
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
-        ]
-      interval: 10s
-      timeout: 10s
-      retries: 120
-
-  es-3:
-    container_name: es-3
-    restart: always
-    depends_on:
-      - es-2
-    image: elasticsearch:${STACK_VERSION}
-    volumes:
-      - certs:/usr/share/elasticsearch/config/certs
-      - esdata3:/usr/share/elasticsearch/data
-    environment:
-      - node.name=es-3
-      - cluster.name=${CLUSTER_NAME}
-      - cluster.initial_master_nodes=es-1,es-2,es-3
-      - discovery.seed_hosts=es-1,es-2
-      - bootstrap.memory_lock=true
-      - xpack.security.enabled=true
-      - xpack.security.http.ssl.enabled=true
-      - xpack.security.http.ssl.key=certs/es-3/es-3.key
-      - xpack.security.http.ssl.certificate=certs/es-3/es-3.crt
-      - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
-      - xpack.security.transport.ssl.enabled=true
-      - xpack.security.transport.ssl.key=certs/es-3/es-3.key
-      - xpack.security.transport.ssl.certificate=certs/es-3/es-3.crt
+      - xpack.security.transport.ssl.key=certs/es/es.key
+      - xpack.security.transport.ssl.certificate=certs/es/es.crt
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${LICENSE}
@@ -194,11 +98,7 @@ services:
     container_name: kibana
     restart: always
     depends_on:
-      es-1:
-        condition: service_healthy
-      es-2:
-        condition: service_healthy
-      es-3:
+      elasticsearch:
         condition: service_healthy
     image: kibana:${STACK_VERSION}
     volumes:
@@ -208,7 +108,8 @@ services:
       - ${KIBANA_PORT}:5601
     environment:
       - SERVERNAME=kibana
-      - ELASTICSEARCH_HOSTS=https://es-1:9200
+      - I18N_LOCALE=zh-CN
+      - ELASTICSEARCH_HOSTS=https://elasticsearch:9200
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
       - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
@@ -226,12 +127,8 @@ services:
 volumes:
   certs:
     name: vol-elk-certs
-  esdata1:
-    name: vol-es-1
-  esdata2:
-    name: vol-es-2
-  esdata3:
-    name: vol-es-3
+  esdata:
+    name: vol-es
   kibana:
     name: vol-kibana
 

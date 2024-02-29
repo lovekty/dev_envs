@@ -1,0 +1,76 @@
+version: "1.0"
+
+services:
+  zk1:
+    container_name: zk-1
+    image: zookeeper:3.9
+    restart: always
+    hostname: zk1
+    ports:
+      - ${ZK1_PORT}:2181
+    volumes:
+      - data-1:/data
+      - datalog-1:/datalog
+      - logs-1:/logs
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zk-1:2888:3888;2181 server.2=zk-2:2888:3888;2181 server.3=zk-3:2888:3888;2181
+
+  zk2:
+    container_name: zk-2
+    image: zookeeper:3.9
+    restart: always
+    hostname: zk2
+    ports:
+      - ${ZK2_PORT}:2181
+    volumes:
+      - data-2:/data
+      - datalog-2:/datalog
+      - logs-2:/logs
+    depends_on: 
+      - zk1
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: server.1=zk-1:2888:3888;2181 server.2=zk-2:2888:3888;2181 server.3=zk3:2888:3888;2181
+
+  zk3:
+    container_name: zk-3
+    image: zookeeper:3.9
+    restart: always
+    hostname: zk3
+    ports:
+      - ${ZK3_PORT}:2181
+    volumes:
+      - data-3:/data
+      - datalog-3:/datalog
+      - logs-3:/logs
+    depends_on: 
+      - zk1
+      - zk2
+    environment:
+      ZOO_MY_ID: 3
+      ZOO_SERVERS: server.1=zk-1:2888:3888;2181 server.2=zk-2:2888:3888;2181 server.3=zk3:2888:3888;2181
+
+volumes:
+  data-1:
+    name: vol-zk-data-1
+  datalog-1:
+    name: vol-zk-datalog-1
+  logs-1:
+    name: vol-zk-logs-1
+  data-2:
+    name: vol-zk-data-2
+  datalog-2:
+    name: vol-zk-datalog-2
+  logs-2:
+    name: vol-zk-logs-2
+  data-3:
+    name: vol-zk-data-3
+  datalog-3:
+    name: vol-zk-datalog-3
+  logs-3:
+    name: vol-zk-logs-3
+
+networks:
+  default:
+    name: nw-zk
