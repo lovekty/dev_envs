@@ -54,7 +54,6 @@ services:
   elasticsearch:
     container_name: elasticsearch
     hostname: elasticsearch
-    restart: always
     depends_on:
       setup:
         condition: service_healthy
@@ -96,7 +95,6 @@ services:
 
   kibana:
     container_name: kibana
-    restart: always
     depends_on:
       elasticsearch:
         condition: service_healthy

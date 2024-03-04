@@ -2,7 +2,6 @@ version: "1.0"
 services:
   opensearch:
     image: opensearchproject/opensearch:${STACK_VERSION}
-    restart: always
     container_name: opensearch
     hostname: opensearch
     environment:
@@ -25,7 +24,6 @@ services:
 
   dashboards:
     image: opensearchproject/opensearch-dashboards:${STACK_VERSION}
-    restart: always
     container_name: opensearch-dashboards
     depends_on:
       - opensearch
@@ -33,7 +31,6 @@ services:
       - ${DASHBOARDS_PORT}:5601
     environment:
       OPENSEARCH_HOSTS: '["https://opensearch:9200"]'
-      I18N_LOCALE: zh-CN
 
 volumes:
   data:

@@ -15,7 +15,6 @@ services:
 
   tm:
     image: flink:1.18
-    restart: always
     depends_on:
       - jm
     command: taskmanager
