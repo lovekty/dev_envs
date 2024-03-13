@@ -4,12 +4,20 @@ services:
   mssql:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: mssql
+    hostname: mssql
     environment:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
       - MSSQL_PID=${MSSQL_PID}
+    volumes:
+      - data:/var/opt/mssql
     ports:
       - ${MSSQL_PORT}:1433
+    platform: linux/amd64
+
+volumes:
+  data:
+    name: vol-mssql
 
 networks:
   default:
