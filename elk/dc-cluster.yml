@@ -65,7 +65,7 @@ services:
 
   es-1:
     container_name: es-1
-    restart: always
+    
     depends_on:
       setup:
         condition: service_healthy
@@ -110,7 +110,7 @@ services:
 
   es-2:
     container_name: es-2
-    restart: always
+    
     depends_on:
       - es-1
     image: elasticsearch:${STACK_VERSION}
@@ -151,7 +151,7 @@ services:
 
   es-3:
     container_name: es-3
-    restart: always
+    
     depends_on:
       - es-2
     image: elasticsearch:${STACK_VERSION}
@@ -192,7 +192,7 @@ services:
 
   kibana:
     container_name: kibana
-    restart: always
+    
     depends_on:
       es-1:
         condition: service_healthy

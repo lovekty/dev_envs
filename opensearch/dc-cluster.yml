@@ -2,7 +2,7 @@ version: "1.0"
 services:
   node1:
     image: opensearchproject/opensearch:${STACK_VERSION}
-    restart: always
+    
     container_name: opensearch-1
     hostname: opensearch-1
     environment:
@@ -28,7 +28,7 @@ services:
 
   node2:
     image: opensearchproject/opensearch:${STACK_VERSION}
-    restart: always
+    
     container_name: opensearch-2
     hostname: opensearch-2
     environment:
@@ -51,7 +51,7 @@ services:
 
   node3:
     image: opensearchproject/opensearch:${STACK_VERSION}
-    restart: always
+    
     container_name: opensearch-3
     hostname: opensearch-3
     environment:
@@ -74,7 +74,7 @@ services:
 
   dashboards:
     image: opensearchproject/opensearch-dashboards:${STACK_VERSION}
-    restart: always
+    
     container_name: opensearch-dashboards
     depends_on:
       - node1

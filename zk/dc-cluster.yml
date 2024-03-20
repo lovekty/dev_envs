@@ -4,7 +4,7 @@ services:
   zk1:
     container_name: zk-1
     image: zookeeper:3.9
-    restart: always
+    
     hostname: zk1
     ports:
       - ${ZK1_PORT}:2181
@@ -19,7 +19,7 @@ services:
   zk2:
     container_name: zk-2
     image: zookeeper:3.9
-    restart: always
+    
     hostname: zk2
     ports:
       - ${ZK2_PORT}:2181
@@ -36,7 +36,7 @@ services:
   zk3:
     container_name: zk-3
     image: zookeeper:3.9
-    restart: always
+    
     hostname: zk3
     ports:
       - ${ZK3_PORT}:2181

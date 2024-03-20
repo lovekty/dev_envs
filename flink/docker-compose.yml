@@ -4,7 +4,7 @@ services:
   jm:
     container_name: flink-jm
     image: flink:1.18
-    restart: always
+    
     ports:
       - ${FLINK_JOBMANAGER_PORT}:8081
     command: jobmanager
