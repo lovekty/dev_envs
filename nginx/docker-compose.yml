@@ -3,10 +3,11 @@ version: "1.1"
 services:
   ng:
     image: nginx:1
+    container_name: nginx
     restart: always
     volumes:
-    - ~/code/docker/ng/nginx.conf:/etc/nginx/nginx.conf
-    - ~/code/docker/ng/conf.d:/etc/nginx/conf.d
+    - ./conf/nginx.conf:/etc/nginx/nginx.conf
+    - ./conf/conf.d:/etc/nginx/conf.d
     ports:
     - 80:80
 
