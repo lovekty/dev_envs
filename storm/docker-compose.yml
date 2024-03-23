@@ -9,7 +9,6 @@ services:
     command: storm nimbus
     external_links:
       - zookeeper:zookeeper
-    
     ports:
       - ${NIMBUS_PORT}:6627
 
@@ -24,7 +23,6 @@ services:
       - nimbus
     external_links:
       - zookeeper:zookeeper
-    
   
   ui:
     image: storm:2.6
@@ -36,7 +34,6 @@ services:
       - nimbus
     ports:
       - ${UI_PORT}:8080
-    
 
 networks:
   default:

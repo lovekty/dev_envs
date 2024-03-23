@@ -4,7 +4,6 @@ services:
   pg:
     image: postgres:16
     container_name: postgres
-    
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_DB=${POSTGRES_DB}
