@@ -2,7 +2,16 @@ version: "1.1"
 
 services:
   pg:
-    image: postgres:16
+    image: ${BASE_IMAGE}
+    # image: pgzh
+    # build:
+    #   context: .
+    #   dockerfile_inline: |
+    #     FROM ${BASE_IMAGE}
+    #     RUN localedef -i zh_CN -c -f UTF-8 -A /usr/share/locale/locale.alias zh_CN.UTF-8
+    #     ENV LANG zh_CN.utf8
+    #   cache_from:
+    #     - ${BASE_IMAGE}
     container_name: postgres
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
