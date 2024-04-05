@@ -1,24 +1,16 @@
 version: "1.0"
 
-# not ready
 services:
   kafka:
-    image: apache/kafka:3.7.0
+    image: ubuntu/kafka:3.1-22.04_edge
     container_name: kafka
-    volumes:
-      - secrets:/etc/kafka/secrets
-      - config:/mnt/shared/config
-      - data:/var/lib/kafka/data
     ports:
       - ${KAFKA_PORT}:9092
-
-volumes:
-  secrets:
-    name: vol-kafka-secrets
-  config:
-    name: vol-kafka-config
-  data:
-    name: vol-kafka-data
+    environment:
+      - TZ=GMT+8
+      - ZOOKEEPER_HOST=zookeeper
+    external_links:
+      - zookeeper:zookeeper
 
 networks:
   default:
