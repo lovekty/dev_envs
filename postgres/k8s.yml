@@ -23,11 +23,11 @@ spec:
           - containerPort: 5432
         env:
           - name: POSTGRES_USER
-            value: bootz
+            value: hz
           - name: POSTGRES_PASSWORD
             value: "123456"
           - name: POSTGRES_DB
-            value: bootz
+            value: hyperzero
         volumeMounts:
           - mountPath: /var/lib/postgresql/data
             name: pgdata
