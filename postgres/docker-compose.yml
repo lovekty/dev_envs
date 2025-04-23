@@ -2,7 +2,7 @@ name: postgres
 
 services:
   pg:
-    image: ${BASE_IMAGE}
+    image: postgres:17
     # image: pgzh
     # build:
     #   context: .
